@@ -159,10 +159,14 @@ function validateCommand(
 // --- File type detection ---
 
 function detectFileType(filePath: string): FileType | null {
-  if (filePath.includes("/agents/")) return "agent";
+  // Only match agents/ and commands/ at the plugin root level, not nested
+  // inside skill content (e.g. plugins/foo/skills/bar/agents/ is skill content,
+  // not an agent definition).
+  const inSkillContent = /\/skills\/[^/]+\//.test(filePath);
+  if (filePath.includes("/agents/") && !inSkillContent) return "agent";
   if (filePath.includes("/skills/") && basename(filePath) === "SKILL.md")
     return "skill";
-  if (filePath.includes("/commands/")) return "command";
+  if (filePath.includes("/commands/") && !inSkillContent) return "command";
   return null;
 }
 
